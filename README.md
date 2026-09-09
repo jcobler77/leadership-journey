@@ -180,6 +180,24 @@ Generate the `.htpasswd` with `htpasswd -c /full/path/to/.htpasswd Leadership`.
 Netlify, Cloudflare Pages, and Vercel each have their own password-protection
 setting that does the same thing. The in-page sign-in can stay either way.
 
+## Icon
+
+The browser-tab and home-screen icon is a flat teal square with three
+flush-left white rules, ragged right — the page's own design language at 16px.
+
+| File | Used for |
+|---|---|
+| `favicon.ico` | 16px and 32px, embedded as PNG. Browsers request `/favicon.ico` whether or not the page declares one, so this exists to answer that request. |
+| `favicon.svg` | modern browsers; crisp at any size |
+| `apple-touch-icon.png` | 180px, for "Add to Home Screen" on a phone |
+
+All three live at the site root and are referenced from both pages, so `/admin`
+points back up to them with `../`.
+
+To change the artwork, edit `favicon.svg` and re-render the rest from it — the
+PNGs are rasterized from that file, and `favicon.ico` is a container holding the
+16px and 32px PNGs.
+
 ## Design
 
 "Modernist": flat and architectural, everything flush left, **zero border radius

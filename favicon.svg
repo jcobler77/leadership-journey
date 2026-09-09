@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Leadership class">
+  <rect width="64" height="64" fill="#0f6b78"/>
+  <g fill="#ffffff">
+    <rect x="14" y="17" width="36" height="6"/>
+    <rect x="14" y="29" width="36" height="6"/>
+    <rect x="14" y="41" width="22" height="6"/>
+  </g>
+</svg>
