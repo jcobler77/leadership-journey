@@ -9,27 +9,98 @@ window.LW = (function () {
   var STORAGE_KEY = "lw-leadership-links";
 
   var SESSIONS = [
-    { number: "01", title: "Identity, Presence & Joy",                        format: "Zoom" },
-    { number: "02", title: "Whole-Brain Discipleship & Relational Maturity",  format: "Zoom" },
-    { number: "03", title: "Emotional Regulation & Enemy Mode",               format: "Zoom" },
-    { number: "04", title: "Joy & Kingdom Community",                         format: "In-Person" },
-    { number: "05", title: "Group Identity & Five Rhythms",                   format: "Zoom" },
-    { number: "06", title: "Repairing Joy & Rebuilding Trust",                format: "Zoom" },
+    { number: "01", title: "Identity, Presence & Joy",                          format: "Zoom" },
+    { number: "02", title: "Whole-Brain Discipleship & Relational Maturity",    format: "Zoom" },
+    { number: "03", title: "Emotional Regulation & Enemy Mode",                 format: "Zoom" },
+    { number: "04", title: "Joy & Kingdom Community",                           format: "In-Person" },
+    { number: "05", title: "Group Identity & Five Rhythms",                     format: "Zoom" },
+    { number: "06", title: "Repairing Joy & Rebuilding Trust",                  format: "Zoom" },
     { number: "07", title: "Differentiation, Boundaries & Intentional Neglect", format: "Zoom" },
-    { number: "08", title: "Inside-Out Leadership Plan & Celebration",        format: "In-Person" }
+    { number: "08", title: "Inside-Out Leadership Plan & Celebration",          format: "In-Person" }
   ];
 
   var SESSION_COUNT = SESSIONS.length;
+  var DOC_FIELDS = ["syllabusUrl", "leaderSyllabusUrl", "assignmentsUrl"];
 
-  /* Accepts a full vimeo.com URL, a player URL, or a bare ID. */
-  function parseVimeoId(raw) {
-    var match = String(raw == null ? "" : raw).match(/(\d{6,})/);
-    return match ? match[1] : "";
+  /* --- Vimeo ------------------------------------------------------------- */
+  /* Takes anything Vimeo hands you: the address bar, the Share dialog's link,
+     the full <iframe> embed code, or a bare ID. Unlisted videos carry a privacy
+     hash that the embed will not play without, so it is captured too. */
+
+  function parseVimeo(raw) {
+    var text = String(raw == null ? "" : raw).trim();
+    if (!text) return null;
+
+    /* The Share dialog gives a whole <iframe>. Work from its src. */
+    var iframe = text.match(/<iframe[^>]*\ssrc\s*=\s*["']([^"']+)["']/i);
+    if (iframe) text = iframe[1].replace(/&amp;/gi, "&");
+
+    var id = "";
+    var hash = "";
+
+    var player = text.match(/player\.vimeo\.com\/video\/(\d+)/i);
+    if (player) {
+      id = player[1];
+    } else {
+      /* vimeo.com/<id>[/<hash>], and the /manage/videos/, /channels/, /groups/
+         and /album/ shapes. The hash is hex, which keeps a trailing path
+         segment like "settings" from being mistaken for one. */
+      var page = text.match(/vimeo\.com\/(?:[\w-]+\/)*?(\d{6,})(?:\/([0-9a-f]{6,}))?/i);
+      if (page) {
+        id = page[1];
+        hash = page[2] || "";
+      }
+    }
+
+    if (!id) {
+      var any = text.match(/(\d{6,})/);
+      if (any) id = any[1];
+    }
+    if (!id) return null;
+
+    if (!hash) {
+      var query = text.match(/[?&]h=([0-9a-zA-Z]+)/i);
+      if (query) hash = query[1];
+    }
+
+    return { id: id, hash: hash };
   }
 
-  function embedUrl(id) {
-    return "https://player.vimeo.com/video/" + id;
+  function emptyVideo() {
+    return { id: "", hash: "" };
   }
+
+  /* Accepts an object, a legacy bare-ID string, or anything pasted. */
+  function toVideo(value) {
+    if (value && typeof value === "object") {
+      var id = typeof value.id === "string" ? value.id.trim() : "";
+      if (!/^\d+$/.test(id)) return emptyVideo();
+      var hash = typeof value.hash === "string" ? value.hash.trim() : "";
+      return { id: id, hash: hash };
+    }
+    return parseVimeo(value) || emptyVideo();
+  }
+
+  function hasVideo(video) {
+    return !!(video && video.id);
+  }
+
+  function embedUrl(video) {
+    if (!hasVideo(video)) return "";
+    return (
+      "https://player.vimeo.com/video/" +
+      encodeURIComponent(video.id) +
+      (video.hash ? "?h=" + encodeURIComponent(video.hash) : "")
+    );
+  }
+
+  /* The address a person recognizes, for showing back in the admin form. */
+  function watchUrl(video) {
+    if (!hasVideo(video)) return "";
+    return "https://vimeo.com/" + video.id + (video.hash ? "/" + video.hash : "");
+  }
+
+  /* --- Links -------------------------------------------------------------- */
 
   /* Only http(s) links are ever written into an href. A schemeless paste is
      assumed to be https; anything else (javascript:, data:) is dropped. */
@@ -45,24 +116,22 @@ window.LW = (function () {
     }
   }
 
+  /* --- Config ------------------------------------------------------------- */
+
   function emptyConfig() {
+    var videos = [];
+    var slides = [];
+    for (var i = 0; i < SESSION_COUNT; i++) {
+      videos.push(emptyVideo());
+      slides.push("");
+    }
     return {
-      videos: new Array(SESSION_COUNT).fill(""),
-      slides: new Array(SESSION_COUNT).fill(""),
+      videos: videos,
+      slides: slides,
       syllabusUrl: "",
       leaderSyllabusUrl: "",
       assignmentsUrl: ""
     };
-  }
-
-  function toStringList(value) {
-    var list = new Array(SESSION_COUNT).fill("");
-    if (!Array.isArray(value)) return list;
-    for (var i = 0; i < SESSION_COUNT; i++) {
-      var entry = value[i];
-      list[i] = typeof entry === "string" ? entry.trim() : "";
-    }
-    return list;
   }
 
   function toText(value) {
@@ -71,13 +140,15 @@ window.LW = (function () {
 
   function normalize(raw) {
     var source = raw && typeof raw === "object" ? raw : {};
-    return {
-      videos: toStringList(source.videos),
-      slides: toStringList(source.slides),
-      syllabusUrl: toText(source.syllabusUrl),
-      leaderSyllabusUrl: toText(source.leaderSyllabusUrl),
-      assignmentsUrl: toText(source.assignmentsUrl)
-    };
+    var config = emptyConfig();
+    for (var i = 0; i < SESSION_COUNT; i++) {
+      if (Array.isArray(source.videos)) config.videos[i] = toVideo(source.videos[i]);
+      if (Array.isArray(source.slides)) config.slides[i] = toText(source.slides[i]);
+    }
+    DOC_FIELDS.forEach(function (key) {
+      config[key] = toText(source[key]);
+    });
+    return config;
   }
 
   function loadConfig() {
@@ -91,16 +162,28 @@ window.LW = (function () {
   }
 
   function saveConfig(config) {
-    var clean = toPublishable(config);
+    var clean = normalize(config);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
     return clean;
   }
 
-  /* The published list every visitor reads. Each page points at it with a
-     <meta name="lw-links-url"> so /admin can reach ../links.json. */
+  function clearConfig() {
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch (err) {
+      /* nothing to do */
+    }
+  }
+
+  /* --- The published list -------------------------------------------------- */
+
+  function meta(name, fallback) {
+    var tag = document.querySelector('meta[name="' + name + '"]');
+    return tag && tag.content ? tag.content : fallback;
+  }
+
   function publishedUrl() {
-    var meta = document.querySelector('meta[name="lw-links-url"]');
-    return meta && meta.content ? meta.content : "links.json";
+    return meta("lw-links-url", "links.json");
   }
 
   function fetchPublished() {
@@ -119,16 +202,16 @@ window.LW = (function () {
   }
 
   /* Anything saved in this browser shows on top of the published list, so the
-     instructor can preview a link before committing it. A blank local field
+     instructor can preview a link before publishing it. A blank local field
      never blanks out a published one. */
   function merge(base, overlay) {
     var result = normalize(base);
     var top = normalize(overlay);
     for (var i = 0; i < SESSION_COUNT; i++) {
-      if (top.videos[i]) result.videos[i] = top.videos[i];
+      if (hasVideo(top.videos[i])) result.videos[i] = top.videos[i];
       if (top.slides[i]) result.slides[i] = top.slides[i];
     }
-    ["syllabusUrl", "leaderSyllabusUrl", "assignmentsUrl"].forEach(function (key) {
+    DOC_FIELDS.forEach(function (key) {
       if (top[key]) result[key] = top[key];
     });
     return result;
@@ -141,37 +224,32 @@ window.LW = (function () {
     });
   }
 
-  /* Normalized, with video fields reduced to bare IDs — the form this is
-     stored and published in. */
-  function toPublishable(config) {
-    var clean = normalize(config);
-    clean.videos = clean.videos.map(parseVimeoId);
-    return clean;
-  }
-
-  function readRawConfig() {
-    try {
-      return window.localStorage.getItem(STORAGE_KEY) || "";
-    } catch (err) {
-      return "";
-    }
+  /* The exact bytes written to links.json. */
+  function toPublishedJson(config) {
+    return JSON.stringify(normalize(config), null, 2) + "\n";
   }
 
   return {
     STORAGE_KEY: STORAGE_KEY,
     SESSIONS: SESSIONS,
     SESSION_COUNT: SESSION_COUNT,
-    parseVimeoId: parseVimeoId,
+    DOC_FIELDS: DOC_FIELDS,
+    parseVimeo: parseVimeo,
+    emptyVideo: emptyVideo,
+    toVideo: toVideo,
+    hasVideo: hasVideo,
     embedUrl: embedUrl,
+    watchUrl: watchUrl,
     safeUrl: safeUrl,
     emptyConfig: emptyConfig,
     normalize: normalize,
     loadConfig: loadConfig,
     saveConfig: saveConfig,
+    clearConfig: clearConfig,
     fetchPublished: fetchPublished,
     loadEffectiveConfig: loadEffectiveConfig,
-    toPublishable: toPublishable,
     merge: merge,
-    readRawConfig: readRawConfig
+    toPublishedJson: toPublishedJson,
+    meta: meta
   };
 })();

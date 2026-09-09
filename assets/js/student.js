@@ -15,11 +15,11 @@
   }
 
   function buildVideo(session, index) {
-    var id = LW.parseVimeoId(config.videos[index]);
+    var video = config.videos[index];
 
-    if (id) {
+    if (LW.hasVideo(video)) {
       var frame = el("iframe", "video-frame");
-      frame.src = LW.embedUrl(id);
+      frame.src = LW.embedUrl(video);
       frame.title = "Session " + session.number + " · " + session.title;
       frame.loading = "lazy";
       frame.allow = "autoplay; fullscreen; picture-in-picture";

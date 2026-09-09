@@ -26,6 +26,7 @@ assets/js/data.js     storage shape, the eight sessions, URL/ID parsing
 assets/js/student.js  renders the session cards
 assets/js/admin.js    builds the form, reads and writes the config
 assets/js/gate.js     admin sign-in
+assets/js/publish.js  writes links.json to the repository from /admin
 assets/js/credentials.js  generated salted hash — see tools/set-password.mjs
 tools/set-password.mjs    regenerates the sign-in credentials
 ```
@@ -37,60 +38,79 @@ and formats, so the two pages can never disagree about them.
 
 `links.json` in the repository root is the published list — **this is the file
 every student reads.** The video files themselves live on Vimeo; `links.json`
-only records which Vimeo ID belongs to which session.
+only records which Vimeo video belongs to which session.
 
 ```json
 {
-  "videos": ["123456789", "", "", "", "", "", "", ""],
-  "slides": ["https://gamma.app/docs/...", "", "", "", "", "", "", ""],
+  "videos": [{ "id": "123456789", "hash": "a1b2c3d4e5" }, { "id": "", "hash": "" }],
+  "slides": ["https://gamma.app/docs/...", ""],
   "syllabusUrl": "https://.../syllabus.pdf",
   "leaderSyllabusUrl": "https://.../breakout-leader-syllabus.pdf",
   "assignmentsUrl": "https://.../special-assignments.pdf"
 }
 ```
 
-`videos` and `slides` are indexed by session number minus one. Video entries are
-bare Vimeo IDs, embedded from `https://player.vimeo.com/video/<id>`.
+`videos` and `slides` are indexed by session number minus one, eight of each.
+`hash` is the privacy hash Vimeo puts on an unlisted video; it is empty for a
+public one. Plain ID strings from an older file are still read correctly.
 
 ### Posting a session
 
 1. Upload the video to Vimeo.
-2. Open `/admin`, sign in, and paste the Vimeo link into that session's field.
-   A full `https://vimeo.com/123456789` URL or a bare ID both work.
-3. Press **Save**. This saves to *your browser only* — open the student page and
-   the video is there, so you can check it before anyone else sees it.
-4. Press **Copy configuration**, paste the result over `links.json`, and commit.
-   Now every student sees it.
+2. Open `/admin`, sign in, and paste the video into that session's box. The
+   address bar, the Share dialog's link, or the whole `<iframe>` embed code all
+   work — **the video then appears under the box, so you can see you have the
+   right one.**
+3. Press **Publish to students**. The class page updates about a minute later.
 
-Step 3 is a private preview; step 4 is what publishes.
+That is the whole loop. No files to edit and nothing to commit.
 
-### Why the preview and the published file are separate
+**Save preview** is there if you want the link on your own screen without
+sending it to the class yet; the student page shows anything saved locally on
+top of what is published. **Copy configuration** gives you the raw JSON, as a
+fallback if publishing is ever unavailable.
 
-The admin page writes to `localStorage`, which lives in one browser and never
-travels. Saving on your laptop does not put anything on a student's phone — her
-browser has its own empty storage, so without `links.json` she would see
-"Video posts after the session" on all eight cards while the videos sat live on
-Vimeo the whole time.
+### Setting up the publishing key
 
-So the student page reads `links.json` first, then layers anything saved in the
-current browser on top. A student has nothing saved locally and sees exactly
-what is published. You see the published list plus your own unpublished
-previews. A blank local field never blanks out a published link.
+**Publish** needs a key once, so the admin page can write `links.json` for you.
 
-### Moving to a backend
+1. Go to **github.com → Settings → Developer settings → Personal access tokens
+   → Fine-grained tokens → Generate new token**.
+2. Name it something like `Leadership class publishing`, and set an expiry —
+   note the date, because Publish stops working when it lapses and you will
+   need a fresh key.
+3. **Repository access** → Only select repositories → `leadership-journey`.
+4. **Permissions** → Repository permissions → **Contents: Read and write**.
+   Nothing else is needed.
+5. Generate it, copy it, and paste it into **Publishing key** on `/admin`. It
+   confirms with "Connected to jcobler77/leadership-journey".
+
+The key is stored in that browser only. It is never committed, never part of
+the site, and never sent anywhere but GitHub. What it can do is limited to
+changing files in this one repository — it cannot touch other repositories or
+the account. If the laptop is lost or the key is pasted somewhere it should not
+be, revoke it on that same settings page and generate another.
+
+### Moving to a real backend
 
 Keep the JSON shape above. Have the admin page `PUT` it and the student page
-`GET` it, and replace `loadEffectiveConfig` and `saveConfig` in
-`assets/js/data.js` with fetches. Publishing then takes effect without a commit,
-and nothing else changes.
+`GET` it, and replace `loadEffectiveConfig` in `assets/js/data.js` and the
+`publish` function in `assets/js/publish.js` with calls to your own endpoint.
+Publishing would then be instant rather than waiting on a Pages rebuild.
 
 ### A note on Vimeo privacy settings
 
 If the videos are unlisted or private rather than public, Vimeo will refuse to
 play them in an embed unless the site's domain is on the video's allowed list —
 the player shows an error instead. In Vimeo, that is **Settings → Privacy →
-Where can this be embedded?** → add the domain the class page is served from.
-Public videos need nothing.
+Where can this be embedded?** → add `leadership.joncobler.com`. Public videos
+need nothing.
+
+Paste the **unlisted link** (the one with the extra code after the video
+number, like `vimeo.com/123456789/a1b2c3d4e5`) rather than the bare number for
+an unlisted video — that code is the privacy hash, and the embed will not play
+without it. The admin page keeps it for you and says "unlisted link" when it
+finds one.
 
 ## The address
 
