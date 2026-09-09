@@ -43,7 +43,7 @@ only records which Vimeo video belongs to which session.
 ```json
 {
   "videos": [{ "id": "123456789", "hash": "a1b2c3d4e5" }, { "id": "", "hash": "" }],
-  "slides": ["https://gamma.app/docs/...", ""],
+  "slides": ["https://drive.google.com/file/d/.../view", ""],
   "syllabusUrl": "https://.../syllabus.pdf",
   "leaderSyllabusUrl": "https://.../breakout-leader-syllabus.pdf",
   "assignmentsUrl": "https://.../special-assignments.pdf"
@@ -70,6 +70,20 @@ sending it to the class yet; the student page shows anything saved locally on
 top of what is published. **Copy configuration** gives you the raw JSON, as a
 fallback if publishing is ever unavailable.
 
+### The slides
+
+The slides are shared as a PDF each week and **embedded on the class page**,
+under that session's video, with an **Open the slides** button beneath.
+
+Paste the PDF's share link into the Slides PDF box. A Google Drive share link
+works as pasted — the page translates `/view` into the `/preview` form Drive
+needs for embedding, and the button still points at the original link.
+
+The button is not decoration. Phones are unreliable at showing a PDF inside a
+frame — some render only the first page, some nothing at all — so the way out
+to the real file is always on the page rather than something the reader has to
+work out.
+
 ### Setting up the publishing key
 
 **Publish** needs a key once, so the admin page can write `links.json` for you.
@@ -90,6 +104,16 @@ the site, and never sent anywhere but GitHub. What it can do is limited to
 changing files in this one repository — it cannot touch other repositories or
 the account. If the laptop is lost or the key is pasted somewhere it should not
 be, revoke it on that same settings page and generate another.
+
+### If Publish reports a conflict
+
+GitHub answers a write with 409 when the file version it was handed is not the
+current one — which happens for a short window after a successful publish,
+while reads still return the previous version. Publish now re-reads and retries
+up to three times, waiting longer each time, so this heals itself.
+
+If it still gives up, the message says so plainly. Wait a few seconds and press
+Publish again.
 
 ### Moving to a real backend
 

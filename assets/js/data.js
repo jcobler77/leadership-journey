@@ -116,6 +116,29 @@ window.LW = (function () {
     }
   }
 
+  /* --- Slides ------------------------------------------------------------- */
+
+  /* A share link and an embeddable link are not the same address. Google Drive
+     serves /view as a page and /preview as something an iframe can show, so the
+     pasted link is translated rather than the instructor having to know. */
+  function slidesEmbedUrl(raw) {
+    var url = safeUrl(raw);
+    if (!url) return "";
+
+    var drive = url.match(/drive\.google\.com\/file\/d\/([^/?#]+)/i);
+    if (drive) return "https://drive.google.com/file/d/" + drive[1] + "/preview";
+
+    var driveOpen = url.match(/drive\.google\.com\/open\?id=([^&#]+)/i);
+    if (driveOpen) return "https://drive.google.com/file/d/" + driveOpen[1] + "/preview";
+
+    var docs = url.match(/docs\.google\.com\/(?:presentation|document)\/d\/([^/?#]+)/i);
+    if (docs) return url.replace(/\/(edit|view|pub)[^/]*$/i, "/preview");
+
+    if (/dropbox\.com/i.test(url)) return url.replace(/([?&])dl=0/i, "$1raw=1");
+
+    return url;
+  }
+
   /* --- Config ------------------------------------------------------------- */
 
   function emptyConfig() {
@@ -241,6 +264,7 @@ window.LW = (function () {
     embedUrl: embedUrl,
     watchUrl: watchUrl,
     safeUrl: safeUrl,
+    slidesEmbedUrl: slidesEmbedUrl,
     emptyConfig: emptyConfig,
     normalize: normalize,
     loadConfig: loadConfig,

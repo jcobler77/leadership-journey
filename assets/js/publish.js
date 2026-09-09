@@ -12,7 +12,9 @@ window.LWPublish = (function () {
 
   var LW = window.LW;
   var TOKEN_KEY = "lw-admin-gh-token";
-  var API = "https://api.github.com";
+  /* Overridable so a test can point at a local server and exercise the real
+     browser cache, which request interception cannot. */
+  var API = LW.meta("lw-github-api", "https://api.github.com");
 
   function repo() {
     return LW.meta("lw-repo", "");
@@ -60,6 +62,11 @@ window.LWPublish = (function () {
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28"
       },
+      /* GitHub sends Cache-Control: private, max-age=60 on authenticated
+         responses. Without this the browser answers a repeat read from cache,
+         we send a stale sha, and the write comes back 409 — every time, for a
+         minute after any publish. */
+      cache: "no-store",
       body: body ? JSON.stringify(body) : undefined
     });
   }
@@ -69,6 +76,7 @@ window.LWPublish = (function () {
     if (status === 401) return "GitHub did not accept that key. Create a new one and paste it again.";
     if (status === 403) return "That key cannot write to " + repo() + ". It needs Contents: Read and write.";
     if (status === 404) return "GitHub cannot see " + repo() + ". Check the key grants access to that repository.";
+    if (status === 409) return "GitHub kept rejecting the update as out of date. Wait a moment and press Publish again.";
     if (status === 422) return "GitHub rejected the update. Try again.";
     return "GitHub returned an error (" + status + ").";
   }
@@ -118,27 +126,39 @@ window.LWPublish = (function () {
     });
   }
 
-  function publish(config) {
-    var token = getToken();
-    if (!configured()) return Promise.reject(new Error("No repository is configured for publishing."));
-    if (!token) return Promise.reject(new Error("Paste a publishing key first, then Publish."));
+  function wait(ms) {
+    return new Promise(function (resolve) {
+      window.setTimeout(resolve, ms);
+    });
+  }
 
-    var json = LW.toPublishedJson(config);
+  /* A 409 means the sha we sent was not the file's current one. That happens
+     when the file genuinely changed, and also for a short window after a
+     successful publish, while GitHub still answers reads with the previous
+     sha. Retrying instantly reads the same stale value, so each attempt waits
+     a little longer before looking again. */
+  var RETRY_DELAYS = [400, 1200, 3000];
 
-    /* A 409 means the file changed between read and write; one retry with a
-       fresh sha settles it. */
+  function attempt(token, json, tries) {
     return currentSha(token)
       .then(function (sha) {
         return put(token, json, sha);
       })
       .catch(function (err) {
-        if (err && err.status === 409) {
-          return currentSha(token).then(function (sha) {
-            return put(token, json, sha);
+        if (err && err.status === 409 && tries < RETRY_DELAYS.length) {
+          return wait(RETRY_DELAYS[tries]).then(function () {
+            return attempt(token, json, tries + 1);
           });
         }
         throw err;
       });
+  }
+
+  function publish(config) {
+    var token = getToken();
+    if (!configured()) return Promise.reject(new Error("No repository is configured for publishing."));
+    if (!token) return Promise.reject(new Error("Paste a publishing key first, then Publish."));
+    return attempt(token, LW.toPublishedJson(config), 0);
   }
 
   return {

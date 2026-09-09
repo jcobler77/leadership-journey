@@ -13,6 +13,9 @@
   var statusLines = [];
   var previews = [];
   var previewTimers = [];
+  var slidesStatuses = [];
+  var slidesPreviews = [];
+  var slidesTimers = [];
   var docInputs = {};
 
   var message = document.getElementById("message");
@@ -98,6 +101,53 @@
     }
   }
 
+  function showSlides(index, url) {
+    var host = slidesPreviews[index];
+    if (!url) {
+      host.hidden = true;
+      host.innerHTML = "";
+      return;
+    }
+    var frame = host.querySelector("iframe");
+    if (!frame) {
+      host.innerHTML = "";
+      frame = el("iframe", "slides-frame");
+      frame.loading = "lazy";
+      frame.title = "Preview of session " + LW.SESSIONS[index].number + " slides";
+      host.appendChild(frame);
+    }
+    if (frame.src !== url) frame.src = url;
+    host.hidden = false;
+  }
+
+  function updateSlidesField(index, immediate) {
+    var raw = slidesInputs[index].value.trim();
+    var line = slidesStatuses[index];
+    var url = raw ? LW.slidesEmbedUrl(raw) : "";
+
+    if (!raw) {
+      line.textContent = "";
+      line.setAttribute("data-state", "empty");
+    } else if (url) {
+      line.textContent = /drive\.google\.com|docs\.google\.com/.test(url)
+        ? "Google Drive — embedded as a preview"
+        : "Embedded on the class page";
+      line.setAttribute("data-state", "ok");
+    } else {
+      line.textContent = "That does not look like a link";
+      line.setAttribute("data-state", "none");
+    }
+
+    window.clearTimeout(slidesTimers[index]);
+    if (immediate) {
+      showSlides(index, url);
+    } else {
+      slidesTimers[index] = window.setTimeout(function () {
+        showSlides(index, url);
+      }, PREVIEW_DELAY);
+    }
+  }
+
   function buildSessionFields() {
     var host = document.getElementById("session-fields");
     if (!host) return;
@@ -120,8 +170,18 @@
       preview.hidden = true;
       block.appendChild(preview);
 
-      var slides = makeInput("slides-" + index, "https://gamma.app/docs/...");
-      block.appendChild(field("Gamma slides link", slides));
+      var slides = makeInput("slides-" + index, "Link to the slides PDF");
+      var slidesField = field("Slides PDF", slides);
+      var slidesStatus = el("p", "field-status");
+      slidesStatus.id = "slides-status-" + index;
+      slidesStatus.setAttribute("data-state", "empty");
+      slidesField.appendChild(slidesStatus);
+      block.appendChild(slidesField);
+
+      var slidesPreview = el("div", "slides-preview");
+      slidesPreview.id = "slides-preview-" + index;
+      slidesPreview.hidden = true;
+      block.appendChild(slidesPreview);
 
       video.addEventListener("input", function () {
         video.dataset.dirty = "1";
@@ -129,10 +189,14 @@
       });
       slides.addEventListener("input", function () {
         slides.dataset.dirty = "1";
+        updateSlidesField(index);
       });
 
       videoInputs.push(video);
       slidesInputs.push(slides);
+      slidesStatuses.push(slidesStatus);
+      slidesPreviews.push(slidesPreview);
+      slidesTimers.push(0);
       statusLines.push(status);
       previews.push(preview);
       previewTimers.push(0);
@@ -172,6 +236,7 @@
     });
     slidesInputs.forEach(function (input, index) {
       set(input, config.slides[index], keepEdits);
+      updateSlidesField(index, true);
     });
     LW.DOC_FIELDS.forEach(function (name) {
       set(docInputs[name], config[name], keepEdits);

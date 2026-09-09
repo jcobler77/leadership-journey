@@ -49,16 +49,27 @@
 
     card.appendChild(buildVideo(session, index));
 
-    /* The slides button is absent entirely when there is no link. */
+    /* The slides are absent entirely when there is no link. */
     var slidesUrl = LW.safeUrl(config.slides[index]);
     if (slidesUrl) {
-      var link = el("a", "btn btn-secondary", "Session slides");
+      var embed = el("div", "slides-embed");
+      var frame = el("iframe", "slides-frame");
+      frame.src = LW.slidesEmbedUrl(slidesUrl);
+      frame.loading = "lazy";
+      frame.title = "Session " + session.number + " slides";
+      embed.appendChild(frame);
+      card.appendChild(embed);
+
+      /* Phones are unreliable at showing a PDF inside a frame — some render
+         only the first page, some nothing at all — so the way out to the real
+         file is always on the page, not a fallback the reader has to find. */
+      var link = el("a", "btn btn-secondary", "Open the slides");
       link.href = slidesUrl;
       link.target = "_blank";
       link.rel = "noopener";
       link.setAttribute(
         "aria-label",
-        "Session " + session.number + " slides — " + session.title
+        "Open session " + session.number + " slides — " + session.title
       );
       card.appendChild(link);
     }
