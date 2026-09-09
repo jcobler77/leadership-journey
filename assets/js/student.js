@@ -5,7 +5,7 @@
   "use strict";
 
   var LW = window.LW;
-  var config = LW.loadConfig();
+  var config = LW.emptyConfig();
 
   function el(tag, className, text) {
     var node = document.createElement(tag);
@@ -92,8 +92,11 @@
     }
   }
 
-  renderSessions();
-  applyDocumentLink("syllabus-link", config.syllabusUrl);
-  applyDocumentLink("leader-syllabus-link", config.leaderSyllabusUrl);
-  applyDocumentLink("assignments-link", config.assignmentsUrl);
+  LW.loadEffectiveConfig().then(function (effective) {
+    config = effective;
+    renderSessions();
+    applyDocumentLink("syllabus-link", config.syllabusUrl);
+    applyDocumentLink("leader-syllabus-link", config.leaderSyllabusUrl);
+    applyDocumentLink("assignments-link", config.assignmentsUrl);
+  });
 })();
