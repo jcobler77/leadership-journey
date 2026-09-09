@@ -92,6 +92,34 @@ the player shows an error instead. In Vimeo, that is **Settings → Privacy →
 Where can this be embedded?** → add the domain the class page is served from.
 Public videos need nothing.
 
+## The address
+
+The site is served at **https://leadership.joncobler.com** — a subdomain of
+joncobler.com, whose DNS is managed at IONOS, pointed at GitHub Pages.
+
+Two pieces make that work, and both must agree:
+
+1. **A CNAME record at IONOS** for host `leadership`, pointing to
+   `jcobler77.github.io`. A subdomain uses a CNAME record — the A records with
+   GitHub's IP addresses are only for an apex domain like `joncobler.com`
+   itself.
+2. **The `CNAME` file in this repository**, containing the single line
+   `leadership.joncobler.com`. GitHub Pages reads it to know which domain to
+   answer for and which certificate to issue. Deleting the file unsets the
+   custom domain, so leave it in place.
+
+Set the DNS record first, then enter the domain under **Settings → Pages →
+Custom domain**. In that order GitHub's DNS check passes on the first try.
+
+**Turn on "Enforce HTTPS"** once GitHub offers it (the certificate can take up
+to an hour). This is not only good practice here: the admin sign-in derives its
+key with the Web Crypto API, which browsers refuse to provide over plain HTTP.
+Served without HTTPS, the sign-in cannot work and reports "Sign-in needs a
+secure connection."
+
+None of this affects joncobler.com itself — adding a subdomain record leaves
+the main site untouched.
+
 ## Signing in to the admin page
 
 `/admin` asks for a user name and password before it shows the link manager.
