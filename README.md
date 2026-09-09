@@ -114,37 +114,29 @@ Custom domain**. In that order GitHub's DNS check passes on the first try.
 None of this affects joncobler.com itself — adding a subdomain record leaves
 the main site untouched.
 
-### Outstanding: Enforce HTTPS is not on yet
+### HTTPS
 
-As of 2026-09-09, GitHub reports **"DNS check successful"** for
-leadership.joncobler.com, but the Enforce HTTPS checkbox is greyed out:
+HTTPS is enforced. GitHub issued the certificate for leadership.joncobler.com
+and **Settings → Pages → Enforce HTTPS** is on, so http:// requests redirect to
+https:// and the site is only ever served encrypted.
 
-> Enforce HTTPS — Unavailable for your site because a certificate has not yet
-> been issued for your domain (leadership.joncobler.com)
+Leave it that way. It is not only good practice here: the admin sign-in derives
+its key with the Web Crypto API, which browsers refuse to expose on a page
+served over plain HTTP. Without HTTPS the student page still works, but /admin
+loads and cannot be signed into — it reports "Sign-in needs a secure
+connection." That failure looks like a broken sign-in rather than a missing
+certificate, which is why it is written down here.
 
-This is the expected state right after the domain is pointed, not a fault. The
-DNS half is correct, and GitHub is requesting a Let's Encrypt certificate on its
-own. It usually lands within an hour; GitHub allows itself up to 24.
-
-**This is not cosmetic, and it is why the item is tracked here.** The admin
-sign-in derives its key with the Web Crypto API, which browsers refuse to expose
-on a page served over plain HTTP. Until HTTPS is enforced:
-
-- the student page works normally over http://
-- `/admin` loads but **cannot be signed into** — it reports "Sign-in needs a
-  secure connection"
-
-**To close this out:** reload **Settings → Pages**, and tick **Enforce HTTPS**
-once the checkbox is live. Then confirm from a terminal:
+To confirm the site at any time:
 
 ```
 curl -sI https://leadership.joncobler.com/ | head -1   # expect: HTTP/2 200
 curl -sI http://leadership.joncobler.com/  | head -1   # expect: 301 to https
 ```
 
-If the certificate has not appeared after 24 hours, remove the custom domain in
-Settings → Pages, save, re-enter it, and save again. That re-triggers issuance
-and clears the stuck state that occasionally follows a DNS change.
+If the certificate ever lapses — after a DNS change, say — remove the custom
+domain in Settings → Pages, save, re-enter it, and save again. That re-triggers
+issuance and clears the stuck state that occasionally follows.
 
 ## Signing in to the admin page
 
