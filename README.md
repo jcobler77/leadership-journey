@@ -19,6 +19,7 @@ python3 -m http.server 8080     # then http://localhost:8080
 ```
 index.html            student page
 admin/index.html      admin page (served at /admin)
+links.json            the published links every student reads
 assets/css/system.css design tokens, buttons, tags, inputs, focus
 assets/css/pages.css  page layout
 assets/js/data.js     storage shape, the eight sessions, URL/ID parsing
@@ -32,11 +33,11 @@ tools/set-password.mjs    regenerates the sign-in credentials
 `assets/js/data.js` is the single source of truth for the eight session titles
 and formats, so the two pages can never disagree about them.
 
-## How the links get there
+## How the links get to students
 
-The instructor opens `/admin`, pastes a Vimeo URL (or a bare ID) and a Gamma
-link per session plus the three PDF links, and presses **Save**. Both pages read
-and write one `localStorage` key, `lw-leadership-links`:
+`links.json` in the repository root is the published list — **this is the file
+every student reads.** The video files themselves live on Vimeo; `links.json`
+only records which Vimeo ID belongs to which session.
 
 ```json
 {
@@ -48,21 +49,48 @@ and write one `localStorage` key, `lw-leadership-links`:
 }
 ```
 
-`videos` and `slides` are indexed by session number minus one. Video fields are
-reduced to bare IDs on save (`String(raw).match(/(\d{6,})/)`), and embedded from
-`https://player.vimeo.com/video/<id>`.
+`videos` and `slides` are indexed by session number minus one. Video entries are
+bare Vimeo IDs, embedded from `https://player.vimeo.com/video/<id>`.
 
-**Because this is `localStorage`, the links live in one browser.** They do not
-follow students across devices, and they are not shared between the instructor's
-laptop and a student's phone. **Copy configuration** puts the saved JSON on the
-clipboard so it can be handed to someone else, who can paste it into their own
-browser's storage.
+### Posting a session
+
+1. Upload the video to Vimeo.
+2. Open `/admin`, sign in, and paste the Vimeo link into that session's field.
+   A full `https://vimeo.com/123456789` URL or a bare ID both work.
+3. Press **Save**. This saves to *your browser only* — open the student page and
+   the video is there, so you can check it before anyone else sees it.
+4. Press **Copy configuration**, paste the result over `links.json`, and commit.
+   Now every student sees it.
+
+Step 3 is a private preview; step 4 is what publishes.
+
+### Why the preview and the published file are separate
+
+The admin page writes to `localStorage`, which lives in one browser and never
+travels. Saving on your laptop does not put anything on a student's phone — her
+browser has its own empty storage, so without `links.json` she would see
+"Video posts after the session" on all eight cards while the videos sat live on
+Vimeo the whole time.
+
+So the student page reads `links.json` first, then layers anything saved in the
+current browser on top. A student has nothing saved locally and sees exactly
+what is published. You see the published list plus your own unpublished
+previews. A blank local field never blanks out a published link.
 
 ### Moving to a backend
 
 Keep the JSON shape above. Have the admin page `PUT` it and the student page
-`GET` it, and replace the two calls in `assets/js/data.js` — `loadConfig` and
-`saveConfig` — with fetches. Nothing else changes.
+`GET` it, and replace `loadEffectiveConfig` and `saveConfig` in
+`assets/js/data.js` with fetches. Publishing then takes effect without a commit,
+and nothing else changes.
+
+### A note on Vimeo privacy settings
+
+If the videos are unlisted or private rather than public, Vimeo will refuse to
+play them in an embed unless the site's domain is on the video's allowed list —
+the player shows an error instead. In Vimeo, that is **Settings → Privacy →
+Where can this be embedded?** → add the domain the class page is served from.
+Public videos need nothing.
 
 ## Signing in to the admin page
 

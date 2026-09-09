@@ -91,9 +91,61 @@ window.LW = (function () {
   }
 
   function saveConfig(config) {
-    var clean = normalize(config);
-    clean.videos = clean.videos.map(parseVimeoId); /* store bare IDs */
+    var clean = toPublishable(config);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
+    return clean;
+  }
+
+  /* The published list every visitor reads. Each page points at it with a
+     <meta name="lw-links-url"> so /admin can reach ../links.json. */
+  function publishedUrl() {
+    var meta = document.querySelector('meta[name="lw-links-url"]');
+    return meta && meta.content ? meta.content : "links.json";
+  }
+
+  function fetchPublished() {
+    if (!window.fetch) return Promise.resolve(null);
+    return fetch(publishedUrl(), { cache: "no-cache" })
+      .then(function (response) {
+        return response.ok ? response.json() : null;
+      })
+      .then(function (json) {
+        return json ? normalize(json) : null;
+      })
+      .catch(function () {
+        /* Missing file, or opened over file:// where fetch is blocked. */
+        return null;
+      });
+  }
+
+  /* Anything saved in this browser shows on top of the published list, so the
+     instructor can preview a link before committing it. A blank local field
+     never blanks out a published one. */
+  function merge(base, overlay) {
+    var result = normalize(base);
+    var top = normalize(overlay);
+    for (var i = 0; i < SESSION_COUNT; i++) {
+      if (top.videos[i]) result.videos[i] = top.videos[i];
+      if (top.slides[i]) result.slides[i] = top.slides[i];
+    }
+    ["syllabusUrl", "leaderSyllabusUrl", "assignmentsUrl"].forEach(function (key) {
+      if (top[key]) result[key] = top[key];
+    });
+    return result;
+  }
+
+  function loadEffectiveConfig() {
+    var local = loadConfig();
+    return fetchPublished().then(function (published) {
+      return published ? merge(published, local) : local;
+    });
+  }
+
+  /* Normalized, with video fields reduced to bare IDs — the form this is
+     stored and published in. */
+  function toPublishable(config) {
+    var clean = normalize(config);
+    clean.videos = clean.videos.map(parseVimeoId);
     return clean;
   }
 
@@ -116,6 +168,10 @@ window.LW = (function () {
     normalize: normalize,
     loadConfig: loadConfig,
     saveConfig: saveConfig,
+    fetchPublished: fetchPublished,
+    loadEffectiveConfig: loadEffectiveConfig,
+    toPublishable: toPublishable,
+    merge: merge,
     readRawConfig: readRawConfig
   };
 })();

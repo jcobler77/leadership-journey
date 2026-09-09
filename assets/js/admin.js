@@ -84,7 +84,11 @@
       block.appendChild(field("Gamma slides link", slides));
 
       video.addEventListener("input", function () {
+        video.dataset.dirty = "1";
         updateStatus(index);
+      });
+      slides.addEventListener("input", function () {
+        slides.dataset.dirty = "1";
       });
 
       videoInputs.push(video);
@@ -98,20 +102,35 @@
 
   function collectDocInputs() {
     DOC_FIELDS.forEach(function (name) {
-      docInputs[name] = document.getElementById("doc-" + name);
+      var input = document.getElementById("doc-" + name);
+      docInputs[name] = input;
+      if (input) {
+        input.addEventListener("input", function () {
+          input.dataset.dirty = "1";
+        });
+      }
     });
   }
 
-  function fillForm(config) {
+  function set(input, value, keepEdits) {
+    if (!input) return;
+    if (keepEdits && input.dataset.dirty === "1") return;
+    input.value = value || "";
+    delete input.dataset.dirty;
+  }
+
+  /* keepEdits guards the first fill, which lands whenever links.json finishes
+     loading — by then the instructor may already be typing. */
+  function fillForm(config, keepEdits) {
     videoInputs.forEach(function (input, index) {
-      input.value = config.videos[index] || "";
+      set(input, config.videos[index], keepEdits);
       updateStatus(index);
     });
     slidesInputs.forEach(function (input, index) {
-      input.value = config.slides[index] || "";
+      set(input, config.slides[index], keepEdits);
     });
     DOC_FIELDS.forEach(function (name) {
-      if (docInputs[name]) docInputs[name].value = config[name] || "";
+      set(docInputs[name], config[name], keepEdits);
     });
   }
 
@@ -137,21 +156,22 @@
     try {
       var saved = LW.saveConfig(readForm());
       fillForm(saved); /* show the reduced bare IDs back to the instructor */
-      say("Saved. Reload the student page to see it.");
+      say("Saved on this browser only. Use Copy configuration to publish.");
     } catch (err) {
       say("Could not save — this browser is blocking local storage.");
     }
   }
 
   function onCopy() {
-    var payload = LW.readRawConfig() || JSON.stringify(LW.normalize(readForm()));
+    /* Pretty-printed so it can be pasted straight into links.json. */
+    var payload = JSON.stringify(LW.toPublishable(readForm()), null, 2);
     if (!navigator.clipboard || !navigator.clipboard.writeText) {
       say("This browser will not allow copying. Save, then copy by hand.");
       return;
     }
     navigator.clipboard.writeText(payload).then(
       function () {
-        say("Configuration copied to the clipboard.");
+        say("Copied. Paste it into links.json to publish it to students.");
       },
       function () {
         say("Could not copy to the clipboard.");
@@ -167,7 +187,9 @@
 
   buildSessionFields();
   collectDocInputs();
-  fillForm(LW.loadConfig());
+  LW.loadEffectiveConfig().then(function (config) {
+    fillForm(config, true);
+  });
 
   document.getElementById("save").addEventListener("click", onSave);
   document.getElementById("copy").addEventListener("click", onCopy);
