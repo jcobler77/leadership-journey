@@ -111,14 +111,40 @@ Two pieces make that work, and both must agree:
 Set the DNS record first, then enter the domain under **Settings → Pages →
 Custom domain**. In that order GitHub's DNS check passes on the first try.
 
-**Turn on "Enforce HTTPS"** once GitHub offers it (the certificate can take up
-to an hour). This is not only good practice here: the admin sign-in derives its
-key with the Web Crypto API, which browsers refuse to provide over plain HTTP.
-Served without HTTPS, the sign-in cannot work and reports "Sign-in needs a
-secure connection."
-
 None of this affects joncobler.com itself — adding a subdomain record leaves
 the main site untouched.
+
+### Outstanding: Enforce HTTPS is not on yet
+
+As of 2026-09-09, GitHub reports **"DNS check successful"** for
+leadership.joncobler.com, but the Enforce HTTPS checkbox is greyed out:
+
+> Enforce HTTPS — Unavailable for your site because a certificate has not yet
+> been issued for your domain (leadership.joncobler.com)
+
+This is the expected state right after the domain is pointed, not a fault. The
+DNS half is correct, and GitHub is requesting a Let's Encrypt certificate on its
+own. It usually lands within an hour; GitHub allows itself up to 24.
+
+**This is not cosmetic, and it is why the item is tracked here.** The admin
+sign-in derives its key with the Web Crypto API, which browsers refuse to expose
+on a page served over plain HTTP. Until HTTPS is enforced:
+
+- the student page works normally over http://
+- `/admin` loads but **cannot be signed into** — it reports "Sign-in needs a
+  secure connection"
+
+**To close this out:** reload **Settings → Pages**, and tick **Enforce HTTPS**
+once the checkbox is live. Then confirm from a terminal:
+
+```
+curl -sI https://leadership.joncobler.com/ | head -1   # expect: HTTP/2 200
+curl -sI http://leadership.joncobler.com/  | head -1   # expect: 301 to https
+```
+
+If the certificate has not appeared after 24 hours, remove the custom domain in
+Settings → Pages, save, re-enter it, and save again. That re-triggers issuance
+and clears the stuck state that occasionally follows a DNS change.
 
 ## Signing in to the admin page
 
