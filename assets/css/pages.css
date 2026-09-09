@@ -170,33 +170,6 @@
   border-top: var(--rule);
 }
 
-/* --- Footer --------------------------------------------------------------- */
-
-.site-footer {
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.site-footer-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 14px;
-  max-width: 840px;
-  margin: 0 auto;
-  padding: 36px 24px;
-}
-
-.site-footer .kicker { color: var(--color-accent-200); }
-
-.footer-statement {
-  max-width: 22ch;
-  font-size: clamp(20px, 4.6vw, 28px);
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
-}
-
 /* --- Admin ---------------------------------------------------------------- */
 
 .admin-grid {
