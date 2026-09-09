@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Manage links · Leadership Class</title>
+<title>Sign in · Leadership Class</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0f6b78">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,18 +14,46 @@
 </head>
 <body>
 
-<main class="container">
+<main class="container" id="gate">
+
+  <header class="page-header">
+    <p class="kicker">Instructor only</p>
+    <h1 class="page-title">Sign in</h1>
+    <p class="lede">This page manages the links students see on the class page. Ask Pastor Jon if you need the sign-in.</p>
+  </header>
+
+  <section class="section">
+    <form class="gate-form" id="gate-form">
+      <div class="field">
+        <label class="field-label" for="gate-user">User name</label>
+        <input class="input" id="gate-user" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label class="field-label" for="gate-pass">Password</label>
+        <input class="input" id="gate-pass" type="password" autocomplete="current-password">
+      </div>
+      <p class="field-status" id="gate-message" data-state="none" role="status" aria-live="polite"></p>
+      <button class="btn btn-primary" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <noscript>
+    <p class="notice" style="margin-top: 28px;">This page needs JavaScript to sign in and manage the links.</p>
+  </noscript>
+
+</main>
+
+<main class="container" id="admin" hidden>
 
   <header class="page-header">
     <p class="kicker">Instructor only</p>
     <h1 class="page-title">Manage links</h1>
     <p class="lede">Paste each link as it becomes available and press Save. The student page picks the links up on this browser. Use Copy configuration to send the saved set to anyone else who needs it.</p>
-    <a class="header-link" href="../">Open the student page →</a>
+    <p class="header-links">
+      <a class="header-link" href="../">Open the student page →</a>
+      <button class="btn btn-ghost btn-inline" id="sign-out" type="button">Sign out</button>
+    </p>
   </header>
-
-  <noscript>
-    <p class="notice" style="margin-top: 28px;">This page needs JavaScript to read and save the link configuration.</p>
-  </noscript>
 
   <section class="section" id="sessions">
     <div class="section-head">
@@ -75,6 +103,8 @@
 </main>
 
 <script src="../assets/js/data.js"></script>
+<script src="../assets/js/credentials.js"></script>
 <script src="../assets/js/admin.js"></script>
+<script src="../assets/js/gate.js"></script>
 </body>
 </html>

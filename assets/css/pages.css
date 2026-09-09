@@ -272,3 +272,31 @@
   font-weight: 600;
   color: var(--color-accent-700);
 }
+
+/* --- Admin sign-in -------------------------------------------------------- */
+
+[hidden] { display: none !important; }
+
+.gate-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: 360px;
+}
+
+.gate-form .field { width: 100%; }
+
+.header-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+}
+
+.btn-inline {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  font-size: 14px;
+}

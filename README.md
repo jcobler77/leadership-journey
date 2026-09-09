@@ -24,6 +24,9 @@ assets/css/pages.css  page layout
 assets/js/data.js     storage shape, the eight sessions, URL/ID parsing
 assets/js/student.js  renders the session cards
 assets/js/admin.js    builds the form, reads and writes the config
+assets/js/gate.js     admin sign-in
+assets/js/credentials.js  generated salted hash — see tools/set-password.mjs
+tools/set-password.mjs    regenerates the sign-in credentials
 ```
 
 `assets/js/data.js` is the single source of truth for the eight session titles
@@ -61,14 +64,47 @@ Keep the JSON shape above. Have the admin page `PUT` it and the student page
 `GET` it, and replace the two calls in `assets/js/data.js` — `loadConfig` and
 `saveConfig` — with fetches. Nothing else changes.
 
-## Before this goes live
+## Signing in to the admin page
 
-**The admin page has no authentication.** Anyone who knows the URL can open it
-and change the links. Put it behind whatever the host provides before the class
-starts — HTTP basic auth on `/admin`, an access-controlled path, or leaving
-`admin/` out of the deployed build and running it locally. It is marked
-`noindex, nofollow` and is not linked from the student page, but neither of
-those is a substitute for access control.
+`/admin` asks for a user name and password before it shows the link manager.
+The sign-in lasts until the tab is closed, and **Sign out** ends it early —
+worth using on a shared computer.
+
+To change the credentials:
+
+```
+node tools/set-password.mjs "Leadership" "a-new-password"
+```
+
+That rewrites `assets/js/credentials.js`. Commit it and redeploy.
+
+### What this sign-in is and is not
+
+The password is **not** stored in this repository. `credentials.js` holds only a
+salted PBKDF2-SHA256 hash at 250,000 iterations, which the browser recomputes at
+sign-in. That matters because this repository is public: the hash is not
+practically reversible, so the password stays safe even though the code is
+readable by anyone.
+
+The **gate itself** is a different matter. It runs in the browser, so it keeps
+casual visitors out of the link manager but it is not a security boundary — a
+determined person who reads the page source can bypass it and edit the links.
+Nothing sensitive is behind it (a set of video and PDF links), so for this class
+that trade is reasonable.
+
+If you want a real lock, put HTTP basic auth in front of `/admin` at the host.
+On Apache or cPanel that is an `.htaccess` in `admin/`:
+
+```apache
+AuthType Basic
+AuthName "Instructor only"
+AuthUserFile /full/path/to/.htpasswd
+Require valid-user
+```
+
+Generate the `.htpasswd` with `htpasswd -c /full/path/to/.htpasswd Leadership`.
+Netlify, Cloudflare Pages, and Vercel each have their own password-protection
+setting that does the same thing. The in-page sign-in can stay either way.
 
 ## Design
 
