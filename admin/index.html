@@ -6,7 +6,13 @@
 <title>Sign in · Leadership Class</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0f6b78">
+<link rel="icon" href="../favicon.ico" sizes="32x32">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <meta name="lw-links-url" content="../links.json">
+<meta name="lw-repo" content="jcobler77/leadership-journey">
+<meta name="lw-branch" content="main">
+<meta name="lw-links-path" content="links.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap">
@@ -49,7 +55,7 @@
   <header class="page-header">
     <p class="kicker">Instructor only</p>
     <h1 class="page-title">Manage links</h1>
-    <p class="lede">Paste each link as it becomes available and press Save to preview it on this browser. When it looks right, press Copy configuration and paste the result into links.json — that file is what every student reads.</p>
+    <p class="lede">Paste each Vimeo link as it becomes available — the video appears below the box so you can check it is the right one. Press Publish and the class page updates about a minute later.</p>
     <p class="header-links">
       <a class="header-link" href="../">Open the student page →</a>
       <button class="btn btn-ghost btn-inline" id="sign-out" type="button">Sign out</button>
@@ -94,9 +100,27 @@
     </div>
   </section>
 
+  <section class="section" id="publishing">
+    <div class="section-head">
+      <h2 class="section-title">Publishing</h2>
+      <p class="kicker">Set up once</p>
+    </div>
+    <div class="admin-grid">
+      <div class="field-block">
+        <label class="field-title" for="gh-token">Publishing key</label>
+        <div class="field">
+          <input class="input" id="gh-token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_...">
+          <p class="field-hint">Lets Publish update the class page. Paste it once — it stays in this browser and is never part of the site. The README has the two-minute setup.</p>
+          <p class="field-status" id="token-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <div class="action-bar">
-    <button class="btn btn-primary" id="save" type="button">Save links</button>
-    <button class="btn btn-secondary" id="copy" type="button">Copy configuration</button>
+    <button class="btn btn-primary" id="publish" type="button">Publish to students</button>
+    <button class="btn btn-secondary" id="save" type="button">Save preview</button>
+    <button class="btn btn-ghost" id="copy" type="button">Copy configuration</button>
     <button class="btn btn-ghost" id="clear" type="button">Clear all</button>
     <p class="action-message" id="message" role="status" aria-live="polite"></p>
   </div>
@@ -104,6 +128,7 @@
 </main>
 
 <script src="../assets/js/data.js"></script>
+<script src="../assets/js/publish.js"></script>
 <script src="../assets/js/credentials.js"></script>
 <script src="../assets/js/admin.js"></script>
 <script src="../assets/js/gate.js"></script>

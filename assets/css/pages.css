@@ -300,3 +300,13 @@
   padding-right: 0;
   font-size: 14px;
 }
+
+/* --- Admin video preview -------------------------------------------------- */
+
+.video-preview {
+  width: 100%;
+  border: 2px solid var(--color-divider);
+  background: #000;
+}
+
+.video-preview .video-frame { border: 0; }

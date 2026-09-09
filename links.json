@@ -1,5 +1,14 @@
 {
-  "videos": ["", "", "", "", "", "", "", ""],
+  "videos": [
+    { "id": "", "hash": "" },
+    { "id": "", "hash": "" },
+    { "id": "", "hash": "" },
+    { "id": "", "hash": "" },
+    { "id": "", "hash": "" },
+    { "id": "", "hash": "" },
+    { "id": "", "hash": "" },
+    { "id": "", "hash": "" }
+  ],
   "slides": ["", "", "", "", "", "", "", ""],
   "syllabusUrl": "",
   "leaderSyllabusUrl": "",
