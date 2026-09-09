@@ -1,0 +1,274 @@
+/* ==========================================================================
+   Page layout — student (/) and admin (/admin)
+   ========================================================================== */
+
+/* --- Shared header -------------------------------------------------------- */
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 40px 0 28px;
+  border-bottom: var(--rule);
+}
+
+.page-header .lede { margin-top: 2px; }
+
+.header-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-accent-700);
+  text-decoration: none;
+}
+
+.header-link:hover {
+  color: var(--color-accent-600);
+  text-decoration: underline;
+}
+
+/* --- Jump nav ------------------------------------------------------------- */
+
+.jump-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: var(--rule);
+}
+
+/* --- No-script notice ----------------------------------------------------- */
+
+.notice {
+  padding: 18px 20px;
+  border: 2px solid var(--color-divider);
+  background: var(--color-surface);
+  color: var(--color-neutral-700);
+  line-height: 1.55;
+}
+
+/* --- Teaching videos ------------------------------------------------------ */
+
+.session-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  column-gap: 28px;
+}
+
+.session-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 0;
+  border-top: var(--rule);
+}
+
+.session-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.session-num {
+  flex: 0 0 auto;
+  min-width: 28px;
+  padding-top: 3px;
+  color: var(--color-accent);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.session-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.video-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  background: #000;
+}
+
+.video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 6px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  padding: 16px;
+  border: 2px solid var(--color-divider);
+  background: var(--color-surface);
+}
+
+.video-placeholder-title {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--color-neutral-700);
+}
+
+/* --- Syllabus documents --------------------------------------------------- */
+/* gap:2px over a divider-colored bed, inside a 2px border, so the rules read
+   as one continuous structure. */
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2px;
+  margin-top: 20px;
+  border: 2px solid var(--color-divider);
+  background: var(--color-divider);
+}
+
+.doc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 22px 20px;
+  background: var(--color-bg);
+}
+
+.doc-card .btn { margin-top: auto; }
+
+.doc-card .body-copy { font-size: 15px; }
+
+/* --- Special assignments -------------------------------------------------- */
+
+.assignment-block {
+  padding: 24px 0;
+  border-top: var(--rule);
+}
+
+.assignment-block .kicker { margin-top: 8px; }
+
+.assignment-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px 24px;
+  margin-top: 18px;
+}
+
+.assignment-item {
+  padding-left: 14px;
+  border-left: 2px solid var(--color-accent);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.assignments-cta {
+  padding-top: 24px;
+  border-top: var(--rule);
+}
+
+/* --- Footer --------------------------------------------------------------- */
+
+.site-footer {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.site-footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 36px 24px;
+}
+
+.site-footer .kicker { color: var(--color-accent-200); }
+
+.footer-statement {
+  max-width: 22ch;
+  font-size: clamp(20px, 4.6vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+/* --- Admin ---------------------------------------------------------------- */
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0 28px;
+}
+
+.field-block {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 20px 0;
+  border-top: var(--rule);
+}
+
+.field-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-neutral-600);
+}
+
+/* 16px is reserved whether or not there is a message, so the layout never
+   jumps as the instructor types. */
+.field-status {
+  min-height: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--color-accent-700);
+}
+
+.field-status[data-state="none"] { color: var(--color-neutral-700); }
+
+.field-hint {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--color-neutral-600);
+}
+
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-top: 36px;
+  padding: 16px 0;
+  border-top: var(--rule);
+  background: var(--color-bg);
+}
+
+.action-message {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-accent-700);
+}

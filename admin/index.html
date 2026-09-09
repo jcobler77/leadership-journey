@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manage links · Leadership Class</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f6b78">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap">
+<link rel="stylesheet" href="../assets/css/system.css">
+<link rel="stylesheet" href="../assets/css/pages.css">
+</head>
+<body>
+
+<main class="container">
+
+  <header class="page-header">
+    <p class="kicker">Instructor only</p>
+    <h1 class="page-title">Manage links</h1>
+    <p class="lede">Paste each link as it becomes available and press Save. The student page picks the links up on this browser. Use Copy configuration to send the saved set to anyone else who needs it.</p>
+    <a class="header-link" href="../">Open the student page →</a>
+  </header>
+
+  <noscript>
+    <p class="notice" style="margin-top: 28px;">This page needs JavaScript to read and save the link configuration.</p>
+  </noscript>
+
+  <section class="section" id="sessions">
+    <div class="section-head">
+      <h2 class="section-title">Sessions</h2>
+      <p class="kicker">Video &amp; slides per session</p>
+    </div>
+    <div class="admin-grid" id="session-fields"></div>
+  </section>
+
+  <section class="section" id="documents">
+    <div class="section-head">
+      <h2 class="section-title">Documents</h2>
+      <p class="kicker">Three shared PDFs</p>
+    </div>
+    <div class="admin-grid">
+      <div class="field-block">
+        <label class="field-title" for="doc-syllabusUrl">Class syllabus</label>
+        <div class="field">
+          <input class="input" id="doc-syllabusUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.org/syllabus.pdf">
+          <p class="field-hint">PDF link</p>
+        </div>
+      </div>
+      <div class="field-block">
+        <label class="field-title" for="doc-leaderSyllabusUrl">Breakout leader syllabus</label>
+        <div class="field">
+          <input class="input" id="doc-leaderSyllabusUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.org/breakout-leader-syllabus.pdf">
+          <p class="field-hint">PDF link</p>
+        </div>
+      </div>
+      <div class="field-block">
+        <label class="field-title" for="doc-assignmentsUrl">Special assignments</label>
+        <div class="field">
+          <input class="input" id="doc-assignmentsUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.org/special-assignments.pdf">
+          <p class="field-hint">Combined PDF link</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="action-bar">
+    <button class="btn btn-primary" id="save" type="button">Save links</button>
+    <button class="btn btn-secondary" id="copy" type="button">Copy configuration</button>
+    <button class="btn btn-ghost" id="clear" type="button">Clear all</button>
+    <p class="action-message" id="message" role="status" aria-live="polite"></p>
+  </div>
+
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/admin.js"></script>
+</body>
+</html>
