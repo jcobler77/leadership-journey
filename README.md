@@ -111,14 +111,32 @@ Two pieces make that work, and both must agree:
 Set the DNS record first, then enter the domain under **Settings → Pages →
 Custom domain**. In that order GitHub's DNS check passes on the first try.
 
-**Turn on "Enforce HTTPS"** once GitHub offers it (the certificate can take up
-to an hour). This is not only good practice here: the admin sign-in derives its
-key with the Web Crypto API, which browsers refuse to provide over plain HTTP.
-Served without HTTPS, the sign-in cannot work and reports "Sign-in needs a
-secure connection."
-
 None of this affects joncobler.com itself — adding a subdomain record leaves
 the main site untouched.
+
+### HTTPS
+
+HTTPS is enforced. GitHub issued the certificate for leadership.joncobler.com
+and **Settings → Pages → Enforce HTTPS** is on, so http:// requests redirect to
+https:// and the site is only ever served encrypted.
+
+Leave it that way. It is not only good practice here: the admin sign-in derives
+its key with the Web Crypto API, which browsers refuse to expose on a page
+served over plain HTTP. Without HTTPS the student page still works, but /admin
+loads and cannot be signed into — it reports "Sign-in needs a secure
+connection." That failure looks like a broken sign-in rather than a missing
+certificate, which is why it is written down here.
+
+To confirm the site at any time:
+
+```
+curl -sI https://leadership.joncobler.com/ | head -1   # expect: HTTP/2 200
+curl -sI http://leadership.joncobler.com/  | head -1   # expect: 301 to https
+```
+
+If the certificate ever lapses — after a DNS change, say — remove the custom
+domain in Settings → Pages, save, re-enter it, and save again. That re-triggers
+issuance and clears the stuck state that occasionally follows.
 
 ## Signing in to the admin page
 
