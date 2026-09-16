@@ -253,3 +253,29 @@ Students are overwhelmingly on phones, so the single-column layout is the
 baseline and the two-up video grid is the enhancement. When changing this:
 don't round a corner, don't center a heading or a button label, and don't
 replace a 2px rule with whitespace.
+
+### Why the session cards line up
+
+Two cards sit side by side above 788px, and their titles are not the same
+length, so a heading that wraps to a second line used to shove that card's
+video and slides down while its neighbour's stayed put.
+
+Every title now reserves two lines' height whenever the cards are side by side.
+The columns are equal width, so once the headings match, the video, the slides
+and the button below them match too — no modern layout feature required, which
+is the point: it renders the same in every browser. Where subgrid exists the
+cards also take the grid's own row tracks, which keeps the pair aligned even if
+a title somehow runs past two lines. Both paths produce identical spacing.
+
+The 360px column floor is what makes the two-line reservation safe: it is the
+narrowest column in which the longest session title still fits in two lines.
+Narrower than that and the grid drops to a single column, where nothing has to
+line up with anything. **If you add a longer session title to `data.js`, check
+it still wraps to two lines at a 788px viewport.**
+
+### Changing CSS or JavaScript
+
+The `<link>` and `<script>` tags carry a `?v=` stamp. GitHub Pages tells
+browsers to hold onto these files, so an edit can sit invisible behind a cached
+copy. **Bump the stamp in both `index.html` and `admin/index.html` whenever you
+change a file under `assets/`** — any new value will do; the date is convenient.
