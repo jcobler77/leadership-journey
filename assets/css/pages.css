@@ -64,6 +64,39 @@
   border-top: var(--rule);
 }
 
+/* Side-by-side cards are separate grid items, so a title that wraps to a second
+   line pushes everything under it down and the videos stop lining up. Giving
+   each card the grid's own row tracks puts the head, video, slides and button
+   on shared rows, so they align across the pair however the titles wrap. */
+@supports (grid-template-rows: subgrid) {
+  .session-grid { row-gap: 14px; }
+
+  .session-card {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 4;
+    gap: 0; /* the rows come from the grid's own row-gap */
+    min-width: 0; /* a grid item will not shrink below min-content without this */
+  }
+
+  .session-card > * { min-width: 0; }
+
+  .session-card > .session-head { grid-row: 1; }
+  .session-card > .video-frame,
+  .session-card > .video-placeholder { grid-row: 2; }
+  .session-card > .slides-embed { grid-row: 3; }
+  .session-card > .btn {
+    grid-row: 4;
+    justify-self: start; /* a grid item would otherwise stretch full width */
+  }
+}
+
+/* Without subgrid, hold the title to two lines' height so at least the common
+   one-line/two-line pairing still lines up. */
+@supports not (grid-template-rows: subgrid) {
+  .session-card .card-title { min-height: 2.3em; }
+}
+
 .session-head {
   display: flex;
   align-items: flex-start;
@@ -290,7 +323,9 @@
 .slides-preview {
   width: 100%;
   aspect-ratio: 16 / 10;
-  min-height: 240px;
+  /* No min-height: with an aspect ratio it also implies a minimum WIDTH
+     (240px tall × 16/10 = 384px), which is wider than a phone's content
+     column and pushes the page into horizontal scroll. */
   border: 2px solid var(--color-divider);
   background: var(--color-surface);
 }
