@@ -49,9 +49,15 @@
 
 /* --- Teaching videos ------------------------------------------------------ */
 
+/* 360px is not arbitrary: it is the narrowest column in which the longest
+   session title still wraps to no more than two lines. Below that the grid
+   drops to one column, where nothing has to line up with anything.
+
+   min() rather than a bare 360px: a track floor wider than the container does
+   not shrink, it overflows, and a narrow phone would scroll sideways. */
 .session-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
   column-gap: 28px;
 }
 
@@ -65,17 +71,35 @@
 }
 
 /* Side-by-side cards are separate grid items, so a title that wraps to a second
-   line pushes everything under it down and the videos stop lining up. Giving
-   each card the grid's own row tracks puts the head, video, slides and button
-   on shared rows, so they align across the pair however the titles wrap. */
+   line pushes everything under it down and the videos stop lining up.
+
+   Two independent things keep them aligned, because this has to hold in every
+   browser a student turns up with:
+
+   1. Every title reserves two lines whenever the cards sit side by side. The
+      columns are equal width, so once the headings are the same height the
+      videos, slides and buttons below them are too — plain box sizing, no
+      modern layout feature involved.
+   2. Subgrid, where it exists, hands each card the grid's own row tracks, so
+      the pair stays aligned even if a title somehow runs past two lines.
+
+   The media query mirrors the grid's own two-column threshold: the container is
+   840px wide including 20px of padding on each side, so 2 x 360px columns plus
+   the 28px gap first fit at a 788px viewport. */
+@media (min-width: 788px) {
+  .session-card .card-title { min-height: 2.3em; } /* two lines at line-height 1.15 */
+}
+
 @supports (grid-template-rows: subgrid) {
+  /* The rows the cards share are the parent's, so the parent has to separate
+     them by the same 14px the card used as a flex gap. Match the two and both
+     layouts space out identically. */
   .session-grid { row-gap: 14px; }
 
   .session-card {
     display: grid;
     grid-template-rows: subgrid;
     grid-row: span 4;
-    gap: 0; /* the rows come from the grid's own row-gap */
     min-width: 0; /* a grid item will not shrink below min-content without this */
   }
 
@@ -89,12 +113,6 @@
     grid-row: 4;
     justify-self: start; /* a grid item would otherwise stretch full width */
   }
-}
-
-/* Without subgrid, hold the title to two lines' height so at least the common
-   one-line/two-line pairing still lines up. */
-@supports not (grid-template-rows: subgrid) {
-  .session-card .card-title { min-height: 2.3em; }
 }
 
 .session-head {
